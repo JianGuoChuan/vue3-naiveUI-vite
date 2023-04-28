@@ -4,12 +4,12 @@ import { createRouter, createWebHashHistory } from 'vue-router'
 import { constantRoutes } from './routes/constants'
 
 const router = createRouter({
-  history: createWebHashHistory(),
-  routes: mapTwoLevelRouter([...constantRoutes]),
+	history: createWebHashHistory(), // createWebHistory(),history模式
+	routes: mapTwoLevelRouter([...constantRoutes]),
 })
 
 export function useAppRouter(app: App) {
-  app.use(router)
+	app.use(router)
 }
 
 export default router

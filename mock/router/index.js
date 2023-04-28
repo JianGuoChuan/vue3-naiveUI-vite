@@ -55,6 +55,20 @@ export const adminRoutes = [{
 			},
 		],
 	},
+	{
+		menuUrl: '/test',
+		menuName: '组件测试',
+		iconPrefix: 'iconfont',
+		icon: 'setting',
+		parentPath: '',
+		children: [
+			{
+				parentPath: '/test',
+				menuUrl: '/test/table',
+				menuName: '表格测试',
+			},
+		],
+	},
 ]
 export const editorRoutes = []
 
