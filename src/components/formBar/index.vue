@@ -1,7 +1,7 @@
 <template>
 	<div style="padding: 10px;">
 		<n-modal v-model:show="modalShow" :on-after-leave="onAfterLeave" title="编辑" :segmented="segmented" preset="dialog" :mask-closable='false'
-			style="width: 70vw;top: -20vh;">
+			style="width: 60vw;top: -20vh;">
 			<div style="background-color: white;width: 100%;border-radius: 15px;padding: 20px;">
 				 <n-form ref="formRef" :model="model" :rules="rules" label-placement="left" label-width="auto" require-mark-placement="right-hanging" :size="size" >
 					<n-grid x-gap="12" :cols="2">

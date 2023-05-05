@@ -31,3 +31,5 @@ export const getTableList = '/getTableList'
 export const getCardList = '/getCardList'
 
 export const getCommentList = '/getCommentList'
+
+export const getTextList = '/api/job/page'

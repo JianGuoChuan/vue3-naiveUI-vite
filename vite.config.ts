@@ -8,6 +8,7 @@ import { NaiveUiResolver } from 'unplugin-vue-components/resolvers'
 import vueJsx from '@vitejs/plugin-vue-jsx'
 
 export default () => {
+  
   return {
     base: '/',
     plugins: [
@@ -40,7 +41,15 @@ export default () => {
       ],
     },
     server: {
-      open: true,
+      host: 'localhost',
+      prot: 5173,
+      proxy: {
+        '/api': {
+          target: 'https://ddlg-wxaapi.din-job.com',
+          changeOrigin: true,
+          rewrite: (path)=> path.replace(/^\/api/, ""),
+        },
+      },
     },
   }
 }

@@ -67,6 +67,11 @@ export const adminRoutes = [{
 				menuUrl: '/test/table',
 				menuName: '表格测试',
 			},
+			{
+				parentPath: '/test',
+				menuUrl: '/test/dataRequest',
+				menuName: '请求测试',
+			},
 		],
 	},
 ]
