@@ -1,41 +1,39 @@
 <template>
-	<div style="padding: 10px;">
+	<div id="table_box" ref="table_box" style="height: calc( 100vh - 180px );">
 		<!-- 筛选组 -->
-		<div class="searchBar" style="display: flex;flex-wrap: wrap;">
-			<div style="margin-right: 10px;margin-bottom: 8px;" v-for="(sItem, sIndex) in columns" :key='sItem.key'>
-				<div style="width: 220px;display: flex;"
-					v-if="sItem.key && sItem.search && (!sItem.searchType || sItem.searchType == 'text')">
-					<label style="line-height: 36px;margin-right: 10px;width: 120px;">{{ sItem.title }}</label>
-					<n-input v-model:value="searchData[sItem.key]" :type="sItem.searchType" :placeholder="sItem.title"
-						clearable />
-				</div>
-				<div style="width: 220px;display: flex;" v-if="sItem.key && sItem.search && sItem.searchType == 'select'">
-					<label style="line-height: 36px;margin-right: 10px;width: 100px;">{{ sItem.title }}</label>
-					<n-select v-model:value="searchData[sItem.key]" :options="sItem.options" clearable />
-				</div>
-				<div style="width: 220px;display: flex;" v-if="sItem.key && sItem.search && sItem.searchType == 'date'">
-					<label style="line-height: 36px;margin-right: 10px;width: 100px;">{{ sItem.title }}</label>
-					<n-date-picker v-model:value="searchData[sItem.key]" type="date" clearable />
-				</div>
-			</div>
+		<n-config-provider :theme-overrides="themeOverThemes">
+			<n-card :bordered="false" :content-style="{ padding: 0 }" style="margin-bottom: 5px;">
+				<div class="search_content">
+					<div style="width: 250px;display: flex;">
+						<label style="line-height: 36px;margin-right: 10px;width: 100px;text-align: center;">编号</label>
+						<n-input v-model:value="searchData.key" size="small" type="text" placeholder="请输入编号" clearable style="height: 35px;" />
+					</div>
+					<div style="width: 270px;display: flex;">
+						<label style="line-height: 36px;margin-right: 10px;width: 130px;text-align: center;">岗位名称</label>
+						<n-input v-model:value="searchData.key" size="small" type="text" placeholder="请输入岗位名称" clearable style="height: 35px;" />
+					</div>
 
-			<div style="display: flex;margin-right: 10px;margin-bottom: 10px;">
-				<n-button type="primary" @click="search">
-					<template #icon><n-icon :component="nSearch"></n-icon></template>
-					<span style="margin-top: 2px;">查询</span>
-				</n-button>
-			</div>
-			<div style="display: flex;margin-right: 10px;margin-bottom: 10px;">
-				<n-button type="warning" @click="reset">
-					<template #icon><n-icon :component="nRefresh"></n-icon></template>
-					<span style="margin-top: 3px;">重置</span>
-				</n-button>
-			</div>
-			<div style="display: flex;margin-right: 10px;margin-bottom: 10px;">
-				<n-button type="info" tertiary><span style="margin-top: 3px;">折叠</span></n-button>
-			</div>
+					<div class="search_btns_content">
+						<div class="search_btn">
+							<n-button type="primary" @click="search">
+								<template #icon><n-icon :component="nSearch"></n-icon></template>
+								<span style="margin-top: 2px;">查询</span>
+							</n-button>
+						</div>
+						<div class="search_btn">
+							<n-button type="warning" @click="reset">
+								<template #icon><n-icon :component="nRefresh"></n-icon></template>
+								<span style="margin-top: 3px;">重置</span>
+							</n-button>
+						</div>
+						<div class="search_btn">
+							<n-button type="info" tertiary><span style="margin-top: 3px;">折叠</span></n-button>
+						</div>
+					</div>
+				</div>
+			</n-card>
+		</n-config-provider>
 
-		</div>
 		<!-- 表格组 -->
 		<n-config-provider :theme-overrides="themeOverThemes">
 			<n-card :bordered="false" :content-style="{ padding: 0 }" style="border-radius: 0px;padding: 10px;"
@@ -43,7 +41,8 @@
 					!appConfig.isCollapse ? 'open-status' : 'close-status',
 					appConfig.sideTheme === 'image' ? 'sidebar-bg-img' : '',
 				]">
-				<div style="margin-bottom: 10px;display: flex;justify-content: space-between;">
+
+				<div style="display: flex;justify-content: space-between;">
 					<div>
 						<n-button type="primary" style="margin-right: 8px;" @click="add">
 							<template #icon><n-icon :component="nAddCircle"></n-icon></template>
@@ -59,31 +58,42 @@
 						</n-button>
 					</div>
 					<div>
-						<n-button strong secondary circle style="margin-right: 8px;" @click="refresh">
+						<n-button strong secondary circle style="margin-right: 8px;" title="刷新" @click="refresh">
 							<template #icon>
 								<n-icon :component="nRefresh"></n-icon>
 							</template>
 						</n-button>
-						<n-button strong secondary circle style="margin-right: 8px;">
+						<n-button strong secondary circle title="打印" style="margin-right: 8px;">
 							<template #icon>
 								<n-icon :component="nPrintOutline"></n-icon>
 							</template>
 						</n-button>
-						<n-button strong secondary circle @click="activate('right')">
+						<n-button strong secondary circle title="列设置" @click="activate('right')">
 							<template #icon>
 								<n-icon :component="nOptionsSharp"></n-icon>
 							</template>
 						</n-button>
 					</div>
 				</div>
-				<n-data-table :columns="columns" :data="tableData" :pagination="pagination" :rowKey='rowKey' :on-update:checked-row-keys="tabelSelected" :bordered="true" />
+				<div class="table_content">
+					<n-data-table :columns="columns" :data="tableData" :single-line="true" :loading="loading"
+					max-height="calc( 100vh - 365px )" scroll-x="1500" :sticky-expanded-rows="true" style="width: 100%;"
+					:rowKey='rowKey' :on-update:checked-row-keys="tabelSelected" :bordered="true" />
+				</div>
+				<div class="page_content">
+					<n-pagination v-model:page="pagesConfig.page_no" v-model:page-size="pagesConfig.page_size" 
+						:item-count="tabelTotal" show-size-picker :page-sizes="pagesConfig.page_sizes" 
+						:on-update:page="pageChange" :on-update:page-size="sizeChange" />
+				</div>
 			</n-card>
 		</n-config-provider>
+		
 		<n-drawer v-model:show="tableContralActive" :width="502" :placement="placement">
    			<n-drawer-content title="列设置" closable>
      			
    			</n-drawer-content>
 		</n-drawer>
+
 	</div>
 </template>
 	
@@ -91,14 +101,19 @@
 import { defineComponent, reactive, ref, computed, watch, toRef } from 'vue'
 import type { DrawerPlacement } from 'naive-ui'
 // 图标引入
-import { Search as nSearch, Refresh as nRefresh, AddCircle as nAddCircle, ClipboardSharp as nClipboardSharp, ArrowRedo as nArrowRedo, PrintOutline as nPrintOutline, OptionsSharp as nOptionsSharp } from '@vicons/ionicons5'
+import { Search as nSearch, Refresh as nRefresh, AddCircle as nAddCircle, ClipboardSharp as nClipboardSharp, ArrowRedo as nArrowRedo, 
+	PrintOutline as nPrintOutline, OptionsSharp as nOptionsSharp } from '@vicons/ionicons5'
 // 主题相关参数配置引入
 import useAppConfigStore from '@/store/modules/app-config'
 import { SideTheme, ThemeMode } from '@/store/types'
-// const propss = defineProps({data: Array});
 export default defineComponent({
 	props: {
-		config: Object, data: Array, rowKeyValue: String
+		config: Object, 
+		data: Array, 
+		pages: Object,
+		total: Number,
+		rowKeyValue: String, 
+		loading: Boolean,
 	},
 	components: {
     	nSearch,
@@ -112,25 +127,13 @@ export default defineComponent({
 
 	setup(props, context) {
 		// 在变量后添加非空断言运算符，也就是感叹号！，有时typescript编译器无法确定它在某一点上可能具有什么类型的值，通过在变量后添加！，可以让编译器知道此变量不会未定义或成为null
-		const searchData: Object = reactive({});
+		const searchData: any = reactive({});
 		// 表格配置项
 		const options = ref(props.config!.options).value;
 		// 表格数据 toRef: 添加响应式 
 		const tableData: Object = toRef(props, 'data');
-		// 分页配置
-		const paginationReactive = reactive({
-			page: 1,
-			pageSize: 10,
-			showSizePicker: true,
-			pageSizes: [10, 20, 50],
-			onChange: (page: number) => {
-				paginationReactive.page = page
-			},
-			onUpdatePageSize: (pageSize: number) => {
-				paginationReactive.pageSize = pageSize
-				paginationReactive.page = 1
-			}
-		});
+		const pagesConfig: any =  toRef(props, 'pages');
+		const tabelTotal: any = toRef(props, 'total');
 		// 多选项容器
 		const deleteBtnState = ref(true);
 		// 批量删除按钮状态控制
@@ -144,11 +147,10 @@ export default defineComponent({
 		}
 		// 监听多选项
 		watch(() => props.data, () => { 
-			console.log('监听数据变化成功:', props);
+			// console.log('监听数据变化成功:', props);
 		}); 
 		// 监听多选项
 		watch(() => selectedData.value, () => { 
-			console.log('多选监听成功:', ref(selectedData).value);
 			// 选中项是批量删除按钮解除禁用
 			if(ref(selectedData).value.length > 0){
 				deleteBtnState.value = false;
@@ -179,12 +181,19 @@ export default defineComponent({
 		}
 		// 表格多选回调
 		const tabelSelected = (keys:any, rows: Object)=> {
-			console.log(keys);
-			console.log(rows);
 			selectedData.value = rows;
 		}
+		// 刷新回调
 		const refresh = ()=>{
 			context.emit('refresh', {});
+		};
+		// 页码切换
+		const pageChange = (number:number) => {
+			context.emit('pageChange', number);
+		};
+		// 页大小切换
+		const sizeChange = (number:number) => {
+			context.emit('sizeChange', number);
 		};
 		// 主题控制
 		const appConfig = useAppConfigStore()
@@ -228,7 +237,8 @@ export default defineComponent({
 			searchData,
 			columns: options,
 			tableData,
-			pagination: paginationReactive,
+			pagesConfig,
+			tabelTotal,
 			deleteBtnState,
 			tableContralActive,
 			placement,
@@ -244,6 +254,8 @@ export default defineComponent({
 			tabelSelected,
 			activate,
 			refresh,
+			pageChange,
+			sizeChange,
 			nSearch,
 			nRefresh,
 			nAddCircle,
@@ -256,4 +268,34 @@ export default defineComponent({
 })
 </script>
 
-<style></style>
+<style scoped lang="scss">
+	.search_content{
+		padding: 10px 10px 0;
+		display: flex;
+		flex-wrap: wrap;
+	}
+	.search_btns_content{
+		display: flex;
+		flex-wrap: wrap;
+		padding-left: 10px;
+	}	
+	.search_btn{
+		display: flex;
+		margin-right: 10px;
+		margin-bottom: 10px;
+	}
+	.table_content{
+		padding: 10px 0 0 0;
+		height: 100%;
+		box-sizing: border-box;
+	}
+	.page_content{
+		display: flex;
+		justify-content: center;
+		margin-top: 8px;
+	}
+	:deep(.n-data-table .n-data-table__pagination){
+		padding-bottom: 10px!important;
+	}
+
+</style>

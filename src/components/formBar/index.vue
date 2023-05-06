@@ -1,32 +1,24 @@
 <template>
 	<div style="padding: 10px;">
 		<n-modal v-model:show="modalShow" :on-after-leave="onAfterLeave" title="编辑" :segmented="segmented" preset="dialog" :mask-closable='false'
-			style="width: 60vw;top: -20vh;">
+			style="width: 60vw;top: -10vh;">
 			<div style="background-color: white;width: 100%;border-radius: 15px;padding: 20px;">
 				 <n-form ref="formRef" :model="model" :rules="rules" label-placement="left" label-width="auto" require-mark-placement="right-hanging" :size="size" >
 					<n-grid x-gap="12" :cols="2">
 						<n-gi>
-							<n-form-item :label="fItem.lebel" :path="model[fItem.prop]" v-for="fItem in config" :key='fItem.prop'>
-								<n-input v-model:value="model[fItem.prop]" placeholder="Input" />
+							<n-form-item :label="fItem.label" :path="fItem.prop" 
+								v-for="fItem in formData" :key='fItem.prop'>
+								<n-input v-model:value="fItem.prop" placeholder="Input" />
 							</n-form-item>
 					    </n-gi>
 					</n-grid>
-				   <!-- <n-form-item label="Input" path="inputValue">
-						<n-input v-model:value="model.inputValue" placeholder="Input" />
-				    </n-form-item>
-				    <n-form-item label="Textarea" path="textareaValue">
-						<n-input v-model:value="model.textareaValue" placeholder="Textarea" type="textarea" :autosize="{ minRows: 3, maxRows: 5 }" />
-				    </n-form-item>
-				    <n-form-item label="Select" path="selectValue">
-						<n-select v-model:value="model.selectValue" placeholder="Select" :options="generalOptions" />
-				    </n-form-item> -->
 				</n-form>
 			</div>
 			<template #action>
-				<n-button type="success" @click="cancelCallback">
+				<n-button type="warning" @click="cancelCallback">
 					取消
 				</n-button>
-				<n-button type="info" @click="submitCallback">
+				<n-button type="primary" @click="submitCallback">
 					保存
 				</n-button>
 			</template>
@@ -35,7 +27,7 @@
 </template>
 
 <script lang="ts">
-	import {defineComponent, ref, watch} from 'vue'
+	import {defineComponent, ref, toRef, watch} from 'vue'
 	import { FormInst } from 'naive-ui'
 	export default defineComponent({
 		props: {
@@ -43,7 +35,11 @@
 		},
 		setup(props, {emit}) {
 			const formRef = ref<FormInst | null>()
+			const formConfig: any = ref(props.config).value;
+			console.log(formConfig);
+			const formData:any = ref([]);
 			let modalShow = ref(false);
+			// 提交表单
 			const submitCallback= ()=>{
 				console.log('confirm');
 				formRef.value?.validate((errors) => {
@@ -55,29 +51,45 @@
 					}
 				})
 			};
+
+			// 取消编辑
 			const cancelCallback= ()=>{
 				console.log('cancel');
 				modalShow.value = false;
 			};
+
+			// 监听表单弹框显隐
 			watch(() => props.show, () => { 
-				console.log('监听成功');
 				modalShow.value = props.show
 			}); 
-			watch(() => props.config, () => {
-				console.log('数据监听成功', props.config);
-			});
+
+			// 监听表单配置项
+			watch(() => formConfig, () => {
+
+				console.log('数据监听成功', formConfig.options);
+				formConfig.options.map( (item: any) => {
+					if(item.formShow){
+						formData.value.push({
+							label: item.title,
+							prop: item.key,
+							type: item.formType || 'text',
+						}) 
+					}
+					console.log(formData);
+				})
+			}, { immediate: true });
+
+			// 弹框关闭回调， 同步父组件show数据
 			const onAfterLeave= ()=>{
 				console.log('关闭');
 				emit('update:show', false);
 			}
+
 			return {
 				modalShow,
 				size: ref('medium'),
-				model: ref({
-					inputValue: null,
-					textareaValue: null,
-					selectValue: null,
-				}),
+				formData,
+				model: formData,
 				rules: {
 					inputValue: {
 						required: true,
@@ -105,6 +117,7 @@
 					})
 				),
 				formRef,
+				formConfig,
 				onAfterLeave,
 				submitCallback,
 				cancelCallback,

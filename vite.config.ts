@@ -45,7 +45,7 @@ export default () => {
       prot: 5173,
       proxy: {
         '/api': {
-          target: 'https://ddlg-wxaapi.din-job.com',
+          target: 'https://twxaapi-3.din-job.com',
           changeOrigin: true,
           rewrite: (path)=> path.replace(/^\/api/, ""),
         },

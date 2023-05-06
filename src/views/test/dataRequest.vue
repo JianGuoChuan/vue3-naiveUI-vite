@@ -1,8 +1,9 @@
 <template>
 	<div>
-		<Tablebar :config="config" :data="getTableData" rowKeyValue='no' @search="searchTable" @reset="resetSearchTable" @add="addItem" @deletes="deletes" @export="exportTable" @refresh="refreshTable"></Tablebar>
-		<FormBar v-model:show="modalShow" :config="formConfig"></FormBar>
+		<Tablebar :config="config" :data="getTableData" rowKeyValue='no' :loading="loading"
+			@search="searchTable" @reset="resetSearchTable" @add="addItem" @deletes="deletes" @export="exportTable" @refresh="refreshTable"></Tablebar>
 		<!-- v-model ：双向绑定 -->
+		<FormBar v-model:show="modalShow" :config="config"></FormBar>
 	</div>
 </template>
 
@@ -33,6 +34,8 @@
 			// 提示组件
 			const message = useMessage();
 			const dialog = useDialog();
+			// 异步加载表格状态控制
+			const loading = ref(false);
 			// 响应式数据请使用ref
 			let getTableData = ref([]);
 			// 生命周期-挂载完成
@@ -42,6 +45,7 @@
 			});
 			// 请求数据
 			const getTestDataList = ()=>{
+				loading.value = true;
 				get({
 					url: getTextList,
 					data: {
@@ -50,17 +54,19 @@
 						lng: '112.9889',
 						page_no: 1,
 						page_size: 10,
-						token: '63e60192db40f6356d07a701'
+						token: '63bf84481ee8e59c469b3f6e'
 					},
 				}).then(({
 					data
 				}: Response) => {
+					loading.value = false;
 					getTableData.value = data.list;
 					message.success(
 						"loading success!"
 					)
 					console.log('请求数据data:', getTableData.value);
 				}).catch((error) => {
+					loading.value = false;
 					console.log('error:', error);
 				})
 			};
@@ -156,11 +162,13 @@
 					options: [
 						{type: 'selection'}, // 多选框预留项
 						{title: '编号',key: 'job_no', hide: true, width: 120 },
-						{title: '岗位名称',key: 'job_name', width: 210, ellipsis: { tooltip: true }, search: true,hide: false, searchType: 'text'},
-						{title: '岗位海报',key: 'cmp_logo_thumb_url', width: 100, search: false,hide: false, searchType: 'image', 
-							render(row: Object){ return h(NImage, {style: {borderRadius: '50%'}, src: row.cmp_logo_thumb_url!, width: '50', height: '50' } ) } },
-						{title: '薪资',key: 'settle_salary', width: 150, search: false,hide: true, searchType: 'checkbox', sorter: (row1: any, row2: any) => row1.age - row2.age},
-						{title: '工作类型',key: 'settle_type', width: 150, search: false,hide: true, searchType: 'checkbox', sorter: (row1: any, row2: any) => row1.age - row2.age},
+						{title: '岗位名称',key: 'job_name', width: 210, ellipsis: { tooltip: true }, search: true,hide: false, searchType: 'text', formShow: true},
+						{title: '岗位海报',key: 'cmp_logo_thumb_url', width: 100, search: false,hide: false, searchType: 'image',  formShow: true,
+							render(row: any){ return h(NImage, {style: {borderRadius: '50%'}, src: row.cmp_logo_thumb_url!, width: '50', height: '50' } ) } },
+						{title: '薪资',key: 'settle_salary', width: 150, search: false,hide: true, searchType: 'checkbox', formShow: true, formType: 'number',  
+							sorter: (row1: any, row2: any) => row1.age - row2.age},
+						{title: '工作类型',key: 'settle_type', width: 150, search: false,hide: true, searchType: 'checkbox', formShow: true, 
+							sorter: (row1: any, row2: any) => row1.age - row2.age},
 						{title: '发布时间',key: 'job_end_date', search: true, searchType: 'date', width: 120},
 						{title: '供应商名称',key: 'supplier_name', search: true, searchType: 'text', width: 150, ellipsis: { tooltip: true } },
 						{title: '岗位标签',key: 'tags', render (row: any) { const tags = row.tags && row.tags.length > 0 
@@ -170,9 +178,9 @@
 						},
 						{title: '是否实名',key: 'cmp_supplier_the_same_flg', width: 100, render(row: any) { return h( NSwitch, { value: row.isrealname, onClick: ()=>{ changeState(row) } } ) } },
 						{title: '状态',key: 'health_flg', width: 100, render(row: any) { return h( NTag, { type: row.state ? 'success' : 'error', } , { default: () => row.state ? '启用' : '禁用' } ) } },
-						{title: '操作',key: 'actions', width: 180, render(row: Object) {return [
+						{title: '操作',key: 'actions', width: 180, render(row: any) {return [
 							h(NButton, {type: 'primary', strong: true,tertiary: false,size: 'small',onClick: () => play(row)}, {default: () => '编辑'}),
-							h(NButton, {type: 'error', strong: true,tertiary: false,size: 'small',onClick: () => remove(row)}, {default: () => '删除'})
+							h(NButton, {type: 'error', strong: true,tertiary: false,size: 'small',onClick: () => remove(row)}, {default: () => '删除'}),
 						]}}
 					]
 				}),
@@ -189,6 +197,7 @@
 				exportTable,
 				refreshTable,
 				modalShow,
+				loading,
 			}
 		}
 	})

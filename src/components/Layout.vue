@@ -48,7 +48,6 @@
 			const appConfig = useAppConfigStore()
 			const axios = useAxios()
 			axios.interceptors.request.use((config) => {
-				console.log(config);
 				return CustomRequestInterceptor(config)
 			})
 			const theme = computed(() => {
