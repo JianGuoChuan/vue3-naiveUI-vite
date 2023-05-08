@@ -64,18 +64,18 @@ export const adminRoutes = [{
 		children: [
 			{
 				parentPath: '/test',
-				menuUrl: '/test/table',
-				menuName: '表格测试',
-			},
-			{
-				parentPath: '/test',
-				menuUrl: '/test/dataRequest',
-				menuName: '请求测试',
-			},
-			{
-				parentPath: '/test',
 				menuUrl: '/test/jobList',
-				menuName: '岗位列表',
+				menuName: '岗位列表[表格表单测试]',
+			},
+			{
+				parentPath: '/test',
+				menuUrl: '/test/preview',
+				menuName: '文件预览',
+			},
+			{
+				parentPath: '/test',
+				menuUrl: '/test/icon',
+				menuName: '图标库',
 			},
 		],
 	},

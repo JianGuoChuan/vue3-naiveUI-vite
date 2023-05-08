@@ -4,16 +4,26 @@
 		<n-config-provider :theme-overrides="themeOverThemes">
 			<n-card :bordered="false" :content-style="{ padding: 0 }" style="margin-bottom: 5px;">
 				<div class="search_content">
-					<div style="width: 250px;display: flex;">
-						<label style="line-height: 36px;margin-right: 10px;width: 100px;text-align: center;">编号</label>
-						<n-input v-model:value="searchData.key" size="small" type="text" placeholder="请输入编号" clearable style="height: 35px;" />
+					<div v-for="sItem in columns" :key="sItem.key">
+						<div v-if="sItem.search" class="search_items">
+							<div style="display: flex;" v-if="!sItem.searchType || sItem.searchType == 'text'">
+								<label class="search_items_lable">{{ sItem.title }}</label>
+								<n-input v-model:value="searchData[sItem.searchKey]" size="small" type="text" :placeholder="`请输入${sItem.title}`" clearable 
+									style="height: 35px;line-height: 35px;width: 220px;" />
+							</div>
+							<div style="display: flex;" v-if="sItem.searchType == 'select'">
+								<label class="search_items_lable">{{ sItem.title }}</label>
+								<n-select v-model:value="searchData[sItem.searchKey]" :options="sItem.dic" :placeholder="`请选择${sItem.title}`" clearable 
+									style="width: 220px;" />
+							</div>
+							<div style="display: flex;" v-if="sItem.searchType == 'datetime'">
+								<label class="search_items_lable">{{ sItem.title }}</label>
+								<n-date-picker v-model:value="searchData[sItem.searchKey]" type="datetime" :placeholder="`请选择${sItem.title}`" clearable
+									style="width: 220px;" />
+							</div>
+						</div>
 					</div>
-					<div style="width: 270px;display: flex;">
-						<label style="line-height: 36px;margin-right: 10px;width: 130px;text-align: center;">岗位名称</label>
-						<n-input v-model:value="searchData.key" size="small" type="text" placeholder="请输入岗位名称" clearable style="height: 35px;" />
-					</div>
-
-					<div class="search_btns_content">
+					<div class="search_btns_content"> 
 						<div class="search_btn">
 							<n-button type="primary" @click="search">
 								<template #icon><n-icon :component="nSearch"></n-icon></template>
@@ -77,7 +87,7 @@
 				</div>
 				<div class="table_content">
 					<n-data-table :columns="columns" :data="tableData" :single-line="true" :loading="loading"
-					max-height="calc( 100vh - 365px )" scroll-x="1500" :sticky-expanded-rows="true" style="width: 100%;"
+					:max-height="tableHeight" scroll-x="1500" :sticky-expanded-rows="true" style="width: 100%;"
 					:rowKey='rowKey' :on-update:checked-row-keys="tabelSelected" :bordered="true" />
 				</div>
 				<div class="page_content">
@@ -88,11 +98,14 @@
 			</n-card>
 		</n-config-provider>
 		
+		<!-- 列控制 -->
 		<n-drawer v-model:show="tableContralActive" :width="502" :placement="placement">
    			<n-drawer-content title="列设置" closable>
      			
    			</n-drawer-content>
 		</n-drawer>
+
+
 
 	</div>
 </template>
@@ -127,7 +140,9 @@ export default defineComponent({
 
 	setup(props, context) {
 		// 在变量后添加非空断言运算符，也就是感叹号！，有时typescript编译器无法确定它在某一点上可能具有什么类型的值，通过在变量后添加！，可以让编译器知道此变量不会未定义或成为null
-		const searchData: any = reactive({});
+		let searchData: any = reactive({});
+		// 表格高度
+		const tableHeight = ref(props.config!.height).value;
 		// 表格配置项
 		const options = ref(props.config!.options).value;
 		// 表格数据 toRef: 添加响应式 
@@ -138,6 +153,7 @@ export default defineComponent({
 		const deleteBtnState = ref(true);
 		// 批量删除按钮状态控制
 		const selectedData:any = ref([{}]);
+		
 		// 抽屉开关
 		const tableContralActive = ref(false);
 		const placement = ref<DrawerPlacement>('right')
@@ -165,6 +181,9 @@ export default defineComponent({
 		}
 		// 搜索重置回调
 		const reset = () => {
+			for(const key in searchData){
+				searchData[key] = '';
+			}
 			context.emit('reset', {});
 		}
 		// 新增表格项回调
@@ -237,6 +256,7 @@ export default defineComponent({
 			searchData,
 			columns: options,
 			tableData,
+			tableHeight,
 			pagesConfig,
 			tabelTotal,
 			deleteBtnState,
@@ -274,10 +294,19 @@ export default defineComponent({
 		display: flex;
 		flex-wrap: wrap;
 	}
+	.search_items{
+		margin-bottom: 10px;
+	}
+	.search_items_lable{
+		line-height: 36px;
+		margin-right: 10px;
+		width: 100px;
+		text-align: center;
+	}
 	.search_btns_content{
 		display: flex;
 		flex-wrap: wrap;
-		padding-left: 10px;
+		padding-left: 20px;
 	}	
 	.search_btn{
 		display: flex;

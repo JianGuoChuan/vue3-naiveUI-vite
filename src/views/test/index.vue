@@ -10,24 +10,13 @@
 	import { defineComponent, ref } from 'vue';
 	export default defineComponent({
 		setup() {
-			const res = ref('我是测试数据');
+			const res = ref('数据');
 			return {
 				num: res
 			}
 		}
 	});
-	
-	// 常规写法
-	// import { ref } from 'vue'
-	// export default {
-	// 	setup() {
-	// 		const res = ref('111');
-	// 		return {
-	// 			num: res
-	// 		}
-	// 	}
-	// };
 </script>
 
-<style>
+<style scoped>
 </style>

@@ -2,13 +2,20 @@
 	<div style="padding: 10px;">
 		<n-modal v-model:show="modalShow" :on-after-leave="onAfterLeave" title="编辑" :segmented="segmented" preset="dialog" :mask-closable='false'
 			style="width: 60vw;top: -10vh;">
-			<div style="background-color: white;width: 100%;border-radius: 15px;padding: 20px;">
-				 <n-form ref="formRef" :model="model" :rules="rules" label-placement="left" label-width="auto" require-mark-placement="right-hanging" :size="size" >
+			<div style="width: 100%;border-radius: 15px;padding: 20px;">
+				 <n-form ref="formRef" :model="formValue" :rules="rules" label-placement="left" label-width="auto" require-mark-placement="right-hanging" :size="size" >
 					<n-grid x-gap="12" :cols="2">
-						<n-gi>
-							<n-form-item :label="fItem.label" :path="fItem.prop" 
-								v-for="fItem in formData" :key='fItem.prop'>
-								<n-input v-model:value="fItem.prop" placeholder="Input" />
+						<n-gi v-for="fItem in formData" :key='fItem.prop'>
+							<n-form-item :label="fItem.label" :path="fItem.prop" v-if="!fItem.type || fItem.type == 'text'">
+								<n-input v-model:value="formValue[fItem.prop]" :placeholder="`请输入${fItem.label}`" clearable />
+							</n-form-item>
+							<n-form-item :label="fItem.label" :path="fItem.prop" v-if="fItem.type == 'select'">
+								<n-select v-model:value="formValue[fItem.prop]" :placeholder="`请选择${fItem.label}`" :options="fItem.dic" clearable />
+							</n-form-item>
+							<n-form-item :label="fItem.label" :path="fItem.prop" v-if="fItem.type == 'datetime'">
+								<n-date-picker v-model:value="formValue[fItem.prop]" :type="fItem.timeMode || 'datetime'" :value-format="fItem.valueFormat"
+									:placeholder="`请选择${fItem.label}`" clearable
+									style="width: 100%;" />
 							</n-form-item>
 					    </n-gi>
 					</n-grid>
@@ -31,20 +38,51 @@
 	import { FormInst } from 'naive-ui'
 	export default defineComponent({
 		props: {
-			show: Boolean, config: Object
+			show: Boolean, config: Object, rules: Object, operState: Number,
 		},
 		setup(props, {emit}) {
 			const formRef = ref<FormInst | null>()
 			const formConfig: any = ref(props.config).value;
-			console.log(formConfig);
 			const formData:any = ref([]);
+			const formValue: any = ref({});
 			let modalShow = ref(false);
+			// 监听表单弹框显隐
+			watch(() => props.show, () => { 
+				modalShow.value = props.show
+				// 新增模式清除记录
+				if(!props.operState && modalShow.value){
+					formData.value.map((item: any) => {
+						formValue.value[item.prop] = null;
+						item.value = null;
+					});
+				}
+			}); 
+			// 监听表单配置项
+			watch(() => formConfig.options, () => {
+				formData.value = [];
+				formConfig.options.map( (item: any) => {
+					if(item.formShow){
+						formValue.value[item.key] = item.value || null;
+						formData.value.push({
+							label: item.title,
+							prop: item.key,
+							type: item.formType || 'text',
+							// value: item.value || null,
+							dic: item.dic || [],
+							timeMode: item.timeMode || 'datetime',
+							valueFormat: item.valueFormat || 'yyyy.MM.dd HH:mm:ss'
+						}) ;
+					}
+				})
+				console.log('数据监听成功formValue：', formValue);
+			}, { deep: true });
+
 			// 提交表单
 			const submitCallback= ()=>{
-				console.log('confirm');
 				formRef.value?.validate((errors) => {
 					if (!errors) {
-						console.log('ok')
+						console.log('formValue:', formValue);
+						emit('confirm', formValue);
 						modalShow.value = false;
 					} else {
 						console.log('errors', errors)
@@ -58,27 +96,6 @@
 				modalShow.value = false;
 			};
 
-			// 监听表单弹框显隐
-			watch(() => props.show, () => { 
-				modalShow.value = props.show
-			}); 
-
-			// 监听表单配置项
-			watch(() => formConfig, () => {
-
-				console.log('数据监听成功', formConfig.options);
-				formConfig.options.map( (item: any) => {
-					if(item.formShow){
-						formData.value.push({
-							label: item.title,
-							prop: item.key,
-							type: item.formType || 'text',
-						}) 
-					}
-					console.log(formData);
-				})
-			}, { immediate: true });
-
 			// 弹框关闭回调， 同步父组件show数据
 			const onAfterLeave= ()=>{
 				console.log('关闭');
@@ -89,33 +106,12 @@
 				modalShow,
 				size: ref('medium'),
 				formData,
-				model: formData,
-				rules: {
-					inputValue: {
-						required: true,
-						trigger: ['blur', 'input'],
-						message: '请输入 inputValue'
-					},
-					textareaValue: {
-						required: true,
-						trigger: ['blur', 'input'],
-						message: '请输入 textareaValue'
-					},
-					selectValue: {
-						required: true,
-						trigger: ['blur', 'input'],
-						message: '请选择 textareaValue'
-					},
-				},
+				formValue,
+				rules: props.rules,
 				segmented: {
 					content: 'soft',
 					footer: 'soft'
 				} as const,
-				generalOptions: ['groode', 'veli good', 'emazing', 'lidiculous'].map((v) => ({
-						label: v,
-						value: v
-					})
-				),
 				formRef,
 				formConfig,
 				onAfterLeave,
